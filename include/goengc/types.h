@@ -1,9 +1,10 @@
 #ifndef GOENGC_TYPES_H
 #define GOENGC_TYPES_H
 
-#include "size.h"
 #include <assert.h>
 #include <stdint.h>
+
+#include "size.h"
 
 /* Enum for stone colors using bit field representation
  * Bit meanings:
@@ -20,24 +21,27 @@ typedef enum {
 /* Get the opposite color (black↔white) */
 static inline GoengcColor goengc_color_opposite(GoengcColor color) {
     assert(color == GOENGC_COLOR_BLACK || color == GOENGC_COLOR_WHITE);
-    return color == GOENGC_COLOR_BLACK ? GOENGC_COLOR_WHITE : GOENGC_COLOR_BLACK;
+    return color == GOENGC_COLOR_BLACK ? GOENGC_COLOR_WHITE
+                                       : GOENGC_COLOR_BLACK;
 }
 
-/* 2D coordinate structure */
+/* 2D vector structure for coordinates and sizes */
 typedef struct {
-    /* Coordinate {0, 0} is A19 (top-left corner) in common coordinate display form. */
-    uint8_t x;  /* Denotes column (left to right) */
-    uint8_t y;  /* Denotes row (top to bottom) */
-} GoengcCoord;
+    /* As a coordinate, {0, 0} is A19 (top-left corner) in common
+     * coordinate display form.
+     */
+    uint8_t x; /* Denotes column (left to right) */
+    uint8_t y; /* Denotes row (top to bottom) */
+} GoengcVec2;
 
-/* Create a coordinate */
-static inline GoengcCoord goengc_coord_create(uint8_t x, uint8_t y) {
+/* Create a 2D vector */
+static inline GoengcVec2 goengc_vec2_create(uint8_t x, uint8_t y) {
     /* Using C99+ designated initializers */
-    return (GoengcCoord){ .x = x, .y = y };
+    return (GoengcVec2){.x = x, .y = y};
 }
 
-/* Check if two coordinates are equal */
-static inline int goengc_coord_equals(GoengcCoord a, GoengcCoord b) {
+/* Check if two vectors are equal */
+static inline int goengc_vec2_equals(GoengcVec2 a, GoengcVec2 b) {
     return a.x == b.x && a.y == b.y;
 }
 
@@ -47,7 +51,7 @@ static inline int goengc_coord_equals(GoengcCoord a, GoengcCoord b) {
  * @param y The y coordinate
  * @return The 1D index corresponding to these coordinates
  */
-static inline uint8_t goengc_coord_to_index(uint8_t x, uint8_t y) {
+static inline uint16_t goengc_coord_to_index(uint8_t x, uint8_t y) {
     assert(x < GOENGC_DATA_SIZE);
     assert(y < GOENGC_DATA_SIZE);
     return y * GOENGC_DATA_SIZE + x;
@@ -58,34 +62,34 @@ static inline uint8_t goengc_coord_to_index(uint8_t x, uint8_t y) {
  * @param index The 1D index
  * @return The 2D coordinates corresponding to this index
  */
-static inline GoengcCoord goengc_index_to_coord(uint8_t index) {
+static inline GoengcVec2 goengc_index_to_coord(uint16_t index) {
     assert(index < GOENGC_DATA_SIZE_SQUARED);
-    return (GoengcCoord){ .x = index % GOENGC_DATA_SIZE, .y = index / GOENGC_DATA_SIZE };
+    return (GoengcVec2){.x = index % GOENGC_DATA_SIZE,
+                        .y = index / GOENGC_DATA_SIZE};
 }
 
 /* Move structure */
 typedef struct {
     GoengcColor color;
-    int is_pass;         /* 1 if this is a pass, 0 otherwise */
-    GoengcCoord coord;   /* Only valid if is_pass is 0 */
+    int is_pass;      /* 1 if this is a pass, 0 otherwise */
+    GoengcVec2 coord; /* Only valid if is_pass is 0 */
 } GoengcMove;
 
 /* Create a new move */
-static inline GoengcMove goengc_move_create(GoengcColor color, int is_pass, GoengcCoord coord) {
+static inline GoengcMove goengc_move_create(GoengcColor color, int is_pass,
+                                            GoengcVec2 coord) {
     /* Using C99+ designated initializers */
-    return (GoengcMove){ 
-        .color = color, 
-        .is_pass = is_pass, 
-        .coord = coord 
-    };
+    return (GoengcMove){.color = color, .is_pass = is_pass, .coord = coord};
 }
 
 /* Check if two moves are equal */
 static inline int goengc_move_equals(GoengcMove a, GoengcMove b) {
-    /* Both moves need to be a pass of the same color (coordinates don't matter),
-       or both need to be not a pass and have the same coordinates. */
-    return a.color == b.color && 
-           (a.is_pass ? b.is_pass : (!b.is_pass && goengc_coord_equals(a.coord, b.coord)));
+    /* Both moves need to be a pass of the same color (coordinates don't
+     * matter), or both need to be not a pass and have the same coordinates.
+     */
+    return a.color == b.color &&
+           (a.is_pass ? b.is_pass
+                      : (!b.is_pass && goengc_vec2_equals(a.coord, b.coord)));
 }
 
 /* Move legality codes */
@@ -93,7 +97,7 @@ typedef enum {
     GOENGC_MOVE_LEGAL = 0,
     GOENGC_MOVE_NON_EMPTY = 1,
     GOENGC_MOVE_SUICIDAL = 2,
-    GOENGC_MOVE_KO = 3  /* Superko or ko */
+    GOENGC_MOVE_KO = 3 /* Superko or ko */
 } GoengcMoveLegality;
 
 #endif /* GOENGC_TYPES_H */
