@@ -23,7 +23,8 @@ typedef struct {
 
     /* Board state */
     GoengcColorField color_field; /* Colors at each position */
-    int num_captures; /* Number of captures by Black minus captures by White */
+    int8_t
+        num_captures; /* Number of captures by Black minus captures by White */
 
     /* Utility bitfields for flood fill and counting operations */
     GoengcBitfield scratch1;

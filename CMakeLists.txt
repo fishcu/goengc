@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME}
   src/board.c
   src/floodfill.c
   src/popcount.c
+  src/constants.c
 )
 
 # Include directories

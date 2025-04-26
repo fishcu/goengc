@@ -2,24 +2,27 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "goengc/bitfield.h"
 #include "goengc/color_field.h"
+#include "goengc/constants.h"
 #include "goengc/size.h"
 #include "goengc/types.h"
 
 /* Flood fill implementation */
 void goengc_flood_fill(const GoengcColorField* restrict color_field,
-                                  GoengcVec2 seed,
-                                  GoengcBitfield* restrict same_color,
-                                  GoengcBitfield* restrict visited) {
+                       GoengcVec2 seed, GoengcBitfield* restrict same_color,
+                       GoengcBitfield* restrict visited) {
     assert(color_field != NULL);
     assert(same_color != NULL);
     assert(visited != NULL);
 
-    /* Get the seed's index and color */
+    /* Convert seed coordinates to index */
     uint16_t seed_index = goengc_coord_to_index(seed.x, seed.y);
-    GoengcColor seed_color =
+
+    /* Get the seed color that we'll be matching */
+    GoengcColor target_color =
         goengc_colorfield_get_color(color_field, seed_index);
 
     /* Reset the scratch bitfield and visited */
@@ -28,22 +31,13 @@ void goengc_flood_fill(const GoengcColorField* restrict color_field,
 
     /* Pre-processing: Mark all positions with the same color as the seed */
     for (uint16_t index = 0; index < GOENGC_DATA_SIZE_SQUARED; index++) {
-        if (goengc_colorfield_get_color(color_field, index) == seed_color) {
+        if (goengc_colorfield_get_color(color_field, index) == target_color) {
             goengc_bitfield_set_bit(same_color, index);
         }
     }
 
     /* Initialize visited with the seed */
     goengc_bitfield_set_bit(visited, seed_index);
-
-    /* 1D index deltas for the 4-connected neighbors (North, West, South, East)
-     */
-    const int16_t delta[4] = {
-        -GOENGC_DATA_SIZE, /* North: one row up */
-        -1,                /* West: one column left */
-        GOENGC_DATA_SIZE,  /* South: one row down */
-        1                  /* East: one column right */
-    };
 
     /* Initialize frontier tracking */
     uint16_t current_start = seed_index;
@@ -62,7 +56,7 @@ void goengc_flood_fill(const GoengcColorField* restrict color_field,
                 /* Check all 4 neighbors */
                 for (int n = 0; n < 4; n++) {
                     /* Calculate neighbor index directly in 1D space */
-                    uint16_t neighbor_index = index + delta[n];
+                    uint16_t neighbor_index = index + GOENGC_NEIGHBOR_4[n];
 
                     /* If this neighbor has the same color and hasn't been
                      * visited */
