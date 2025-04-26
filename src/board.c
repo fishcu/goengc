@@ -28,10 +28,9 @@ void goengc_board_reset(GoengcBoard* restrict board) {
     /* Initialize color field as empty, surround with padding of "off board"
      * color */
     goengc_colorfield_fill(&board->color_field, GOENGC_COLOR_OFF_BOARD);
-    for (uint8_t y = GOENGC_PAD; y < board->board_size.y + GOENGC_PAD;
-         y++) {
-        for (uint8_t x = GOENGC_PAD;
-             x < board->board_size.x + GOENGC_PAD; x++) {
+    for (uint8_t y = GOENGC_PAD; y < board->board_size.y + GOENGC_PAD; y++) {
+        for (uint8_t x = GOENGC_PAD; x < board->board_size.x + GOENGC_PAD;
+             x++) {
             goengc_colorfield_set_color(&board->color_field,
                                         goengc_coord_to_index(x, y),
                                         GOENGC_COLOR_EMPTY);

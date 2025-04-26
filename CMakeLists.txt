@@ -11,6 +11,8 @@ set(CMAKE_C_EXTENSIONS OFF)
 # Library sources
 add_library(${PROJECT_NAME} 
   src/board.c
+  src/floodfill.c
+  src/popcount.c
 )
 
 # Include directories
